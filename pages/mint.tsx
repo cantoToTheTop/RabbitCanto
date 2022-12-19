@@ -25,7 +25,7 @@ const { data: accountData, isLoading } = useAccount();
 const [rabBalance, setRabBalance] = useState(0);
 const [rabAllowance, setRabAllowance] = useState(0);
 const [nftSupply, setNftSupply] = useState(0);
-const [userNftBalance, setUserNftBalance] = useState(0);
+const [userNfts, setUserNfts] = useState([]);
 
 const [mintAmount, setMintAmount] = useState(0);
 
@@ -70,31 +70,6 @@ const validateMintAmount = () => {
 	
 
 
-
-const { refetch: getRabBalance } = useContractRead(
-		{
-			addressOrName: NoteAddress,
-			contractInterface: XRAB_ABI,
-		},
-		"balanceOf",
-    {
-      args:[accountData?.address]
-    }
-	);
-
-	
-
-	const { refetch: getRabAllowance } = useContractRead(
-		{
-			addressOrName: NoteAddress,
-			contractInterface: XRAB_ABI,
-		},
-		"allowance",
-    {
-      args:[accountData?.address, NFT]
-    }
-	);
-
     const { refetch: getSupply } = useContractRead(
 		{
 			addressOrName: NFT,
@@ -106,12 +81,12 @@ const { refetch: getRabBalance } = useContractRead(
     }
 	);
 
-    const { refetch: getUserNftBalance } = useContractRead(
+    const { refetch: getWalletOfOwner } = useContractRead(
 		{
 			addressOrName: NFT,
 			contractInterface: NFT_ABI,
 		},
-		"balanceOf",
+		"walletOfOwner",
     {
       args:[accountData?.address]
     }
@@ -119,18 +94,6 @@ const { refetch: getRabBalance } = useContractRead(
 
 
   useEffect(() => {
-	const fetchRabAllowance = () =>
-        console.log("fetching Note Allowance")
-		getRabAllowance().then((data) =>
-			setRabAllowance(data.data ? parseInt(data.data) : 0)			
-		);
-
-	const fetchRabBalance= () =>
-		console.log("fetching Note Balance")
-		getRabBalance().then((data) =>
-		  setRabBalance(data.data ? parseInt(data.data) : 0)
-			
-		);
 
 	const fetchTotalSupply= () =>
 		console.log("fetching supply")
@@ -138,18 +101,19 @@ const { refetch: getRabBalance } = useContractRead(
         setNftSupply(data.data ? parseInt(data.data) : 0)
 		);
 
-    const fetchUserNftBalance= () =>
+    const fetchWalletOfOwner= () =>
 		console.log("fetching user balance")
-		getUserNftBalance().then((data) =>
-        setUserNftBalance(data.data ? parseInt(data.data) : 0)
+		getWalletOfOwner().then((data) =>
+        setUserNfts(data.data ? data.data : [])
 		);
 
 
 
 	if(accountData?.address){
-		fetchRabAllowance()
-		fetchRabBalance()
+
 		fetchTotalSupply()
+		fetchWalletOfOwner()
+		
 	}
 	}, [accountData?.address, approving, minting]);
 
@@ -252,8 +216,16 @@ const { refetch: getRabBalance } = useContractRead(
             </VStack>
             </HStack>
             {
-                userNftBalance > 0 ?
-                <Text fontWeight={'extrabold'} color={'white'} marginTop={'25px'}>You own {userNftBalance} Happy Rabbits!</Text>
+                userNfts.length > 0 ?
+				<>
+                <Text fontWeight={'extrabold'} color={'white'} marginTop={'25px'}>You own {userNfts.length} Happy Rabbits!</Text>
+				<Flex flexWrap={"wrap"}>
+				{userNfts.map((x) => 
+					<img src={`/collection/${parseInt(x)}.png`} className={styles.imageWrapper2} />
+				)
+				}
+				</Flex>
+				</>
                 :
                 <Text fontWeight={'extrabold'} color={'white'} marginTop={'25px'}>You don't have any Happy Rabbits, mint some cute Rabbits!</Text>
             }
