@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAccount, useContract, useContractRead, useSigner } from "wagmi";
 
 import { XRAB_ABI } from "../abi/xRabAbi.js";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { AiOutlineArrowDown } from 'react-icons/ai';
 import { Connect } from "../components";
 import Link from "next/link";
@@ -135,11 +135,13 @@ const Page = () => {
 
 
 	const handleMax = () => {
-		setRabAmount(parseFloat(((rabBalance / 10 ** 18) - 0.001).toFixed(3)));
+		const amount = (rabBalance - 1)/(10**18);
+		setRabAmount(Math.round(amount));
 	};
 
 	const handleXMax = () => {
-		setXrabAmount(parseFloat(((xRabBalance / 10 ** 18) - 0.001).toFixed(3)));
+		const amount = (xRabBalance - 1)/(10**18);
+		setXrabAmount(Math.round(amount));
 	};
 
 	const handleChange = () => {
@@ -231,8 +233,9 @@ const Page = () => {
 
 	const handleDeposit = async () => {
 		setDepositing(true);
+		const amount = BigNumber.from(rabAmount).mul(BigNumber.from(10).pow(18));
 		try {
-			const tx = await contractXrab.deposit((rabAmount * (10 ** 18)).toString(), accountData?.address);
+			const tx = await contractXrab.deposit(amount.toString(), accountData?.address);
 			await tx.wait();
 			setDepositing(false);
 		} catch (e) {
@@ -244,8 +247,9 @@ const Page = () => {
 
 	const handleRedeem = async () => {
 		setRedeeming(true);
+		const amount = BigNumber.from(rabAmount).mul(BigNumber.from(10).pow(18));
 		try {
-			const tx = await contractXrab.redeem((xrabAmount * (10 ** 18)).toString(), accountData?.address, accountData?.address);
+			const tx = await contractXrab.redeem(amount.toString(), accountData?.address, accountData?.address);
 			await tx.wait();
 			setRedeeming(false);
 		} catch (e) {
